@@ -31,27 +31,9 @@ public/widget.js ──POST──► api/faq-agent.js (shared engine)
 
 ## The questions
 
-1. **Mit szeretne?** Pala bontása és elszállítása · Csak elszállítás (a pala már
-   le van szedve) · Bontás + elszállítás + **új tetőfedés**
-2. Épület típusa
-3. **Mi van a tetőn** (több is, mert gyakran több réteg van): hullámpala · síkpala ·
-   bitumenes lemez
-4. Tetőforma → **alapterület** - the roof area is never asked; it is calculated:
-   **sátortető × 1,2, nyeregtető × 1,35** (félnyereg × 1,1, összetett × 1,45)
-5. Magasság (állvány) → körbejárhatóság → tetőszerkezet állapota
-6. Új tetőnél: új fedés anyaga → kiegészítők (eresz, bádog, tetőablak, kémény)
-7. **Szeretne hőszigetelést?** (csak új fedésnél: padlásfödém / tetőtér / tanácsot kér)
-8. Kezdés: Amint lehet / 30 / 60 / 90 napon belül
-
-**Csak elszállítás:** anyag → mennyi pala (**50–100 / 100–300 / 300+ m²**) → hogyan
-van tárolva → megközelítés → kezdés.
-
-The build year is not asked: every pala is treated as asbestos-cement. Price tiers
-follow the roof-surface bands 100 m² alatt / 100–300 / 300 felett.
-
-Then one form: név, telefon, település, **magánszemély / cég / intézmény /
-társasház** (magánszemély preselected). The survey time is asked after the quote. A typed start later
-than 90 days is politely refused.
+Szolgáltatás → helyszín → épület → anyag → tetőforma → alapterület →
+padlás belülről járható? → (csere: új fedés, hőszigetelés) → kezdés. The roof
+area is never asked: footprint × shape factor.
 
 ## Keeping customers in the chat
 
@@ -78,15 +60,32 @@ than 90 days is politely refused.
 
 ## Pricing
 
-- **A floor, never a range.** Band answers are priced at their lower edge, "Nem
-  tudom" at a modest default, and the assumption is printed ("135 m² tetőfelület:
-  100 m² × 1,35"). The roof structure is **always** named as an exclusion - its
-  real condition only shows once the pala is off.
+- **Banacraft's own prices** (Róbert, 2026-10-30 and 2026-11-05), all in `P`
+  at the top of `lib/flow.js`. The full list and the decisions behind it are in
+  `banacraft-arak-2026-10-30.md` next to the three bot folders.
+- **A floor, never a range.** A band button is priced at its lower edge and the
+  assumption is printed; a typed number is priced as typed.
+- **Every quantity question** has buttons AND a field for the exact number
+  ("pontosan lehessen beírni a számokat").
+- **Location first:** Budapest / Pest megye / Pest környéki megye / Távolabb.
+  "Távolabb" skips straight to the start date and gets a call, not a price.
+- **Start within 60 days** (Amint lehet / 30 / 60 napon belül); a typed later
+  start is politely refused.
+- **No price, a call instead** for the jobs listed below: the customer sees why
+  and "kollégánk hamarosan hívja"; the owner gets a "Hívást kér" e-mail with the
+  answers and, where there is a rate, Róbert's figure for the call. Zoho gets
+  `quote_basis: "call"` and no amounts.
 - **VAT:** magánszemély and társasház see gross, cég and intézmény see net + ÁFA.
-- **All rates live in `P` at the top of `lib/flow.js`.** They are
-  market-calibrated starting points, **not Banacraft's own price list** - replace
-  them with Banacraft's numbers as soon as they're known. `npm test` prints sample
-  quotes, so a bad edit shows immediately.
+- `npm test` clicks every scenario through and checks the exact total.
+- **Removal + haulage per m² of roof:** up to 50 m² 6 990 Ft, 50–100 m² 4 400 Ft,
+  over 100 m² 3 790 Ft. A bigger roof never costs less than the top of the tier
+  below. Pest megye +10%, környező megye +20%. Minimum billed area: Budapest
+  30 m², Pest megye 50 m², környező megye 100 m².
+- **Extras:** bitumenes réteg +800 Ft/m², új héjazat 38 000 Ft/m², teljes
+  tetőcsere bádogos munkával 60 000 Ft/m², hőszigetelés 16 900 Ft/m². Állványozás
+  (if the loft is not reachable from inside): individual price.
+- **A call instead of a price:** over 200 m² of roof, industrial roofs, pala
+  already on the ground, Távolabb.
 
 ## Run, test, deploy
 
@@ -149,6 +148,8 @@ floating button of its own, so the widget's launcher stays on.
 - **Finished estimate:** contact details, customer type, every answer, the
   itemised price, exclusions, warnings (damaged roof structure, tight plot) and the
   full chat.
+- **No price, a call promised:** "Hívást kér: név, telefon - munka, település" -
+  the answers, why there was no price, and the reference figure where there is one.
 - **Stopped halfway:** the conversation so far (chat closed, page left, or 3 idle
   minutes; max 3 per conversation).
 - **Zoho Flow:** same webhook contract as the NM Bau bot (`ZOHO_FLOW_WEBHOOK_URL`),
